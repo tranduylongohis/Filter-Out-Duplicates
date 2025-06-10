@@ -2,57 +2,66 @@
 #include <fstream>
 #include <vector>
 #include <set>
-
+#include <cmath>
 
 using namespace std;
 
-//Input Struct
+const double TOLERANCE = 1e-3;
+
+//Input Stuct
 struct WaterPressurePoints {
     double x;
     double y;
     double water_pressure;
 };
 
-//Input Vector
+//Input vector
 vector<WaterPressurePoints> points = {
         {0, 0, 0},
         {0, 0, 15},
         {1e-19, 0, 10},
         {0.5, 0, 25.123},
-        {0.1, 10, 25}
+        {0.1, 10, 25},
+        {0.0, 0.004999999, 10},
+        {0.0, 0.005000001, 20}
 };
 
-//Function WriteWaterPressure()
-void WriteWaterPressure(const std::vector<WaterPressurePoints>& points) {
+//Rounded Function
+pair<int, int> RoundCoordinates(double x, double y) {
+    int x_key = static_cast<int>(round(x / TOLERANCE));
+    int y_key = static_cast<int>(round(y / TOLERANCE));
+    return { x_key, y_key };
+}
+
+
+//WriteWaterPressure Function
+void WriteWaterPressure(vector<WaterPressurePoints>& points) {
     //Open file output.txt
     ofstream output("output.txt");
-    //Print error message to console window if can not open file output.txt
+
+    //Show error if can not open file output.txt
     if (!output.is_open()) {
-        std::cerr << "Can not open output.txt" <<endl;
+        cerr << "Can not open output.txt" << endl;
         return;
     }
 
-    // Use pair<int, int> to make a key
-    set<pair<int, int>> seen;
+    //Set of encountered coordinates(after rounding)
+    set<pair<int, int>> seen_positions;
 
-    for (auto p : points) {
-        int x_key = static_cast<int>(p.x * 1000); //rounded x and cast to type int
-        int y_key = static_cast<int>(p.y * 1000); //rounded y and cast to type int
+    for (auto point : points) {
+        pair<int, int> rounded = RoundCoordinates(point.x, point.y);
 
-        pair<int, int> key = { x_key, y_key };
-
-        // If key not exist in set then write to output.txt
-        if (seen.count(key) == 0) {
-            seen.insert(key);
-
-            output << p.x << "\t" << p.y << "\t" << p.water_pressure << endl;
+        if (seen_positions.count(rounded) == 0) {
+            seen_positions.insert(rounded);
+            output << point.x << "\t" << point.y << "\t" << point.water_pressure << endl;
         }
     }
-    //Close file output.txt after writing data
-    output.close();
+
+    //Close file output.txt
+    output.close();   
 }
 
-int main() {   
+int main() {
     WriteWaterPressure(points);
     cout << "Writing data to output.txt successfully!" << endl;
     return 0;
